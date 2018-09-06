@@ -1,5 +1,6 @@
 package cn.moyada.order.file.write;
 
+import cn.moyada.order.file.ChannelCloseable;
 import cn.moyada.order.file.read.ReadAction;
 
 import java.io.IOException;
@@ -13,9 +14,10 @@ import java.util.List;
  * @author xueyikang
  * @create 2018-09-04 18:57
  */
-public abstract class SplitFile {
+public class SplitFile implements ChannelCloseable {
 
     private float dataSize = -1;
+    private final int size;
     protected final Path output;
     protected final List<WriteAction> writeActions;
 
@@ -33,7 +35,12 @@ public abstract class SplitFile {
             writeActions.add(new WriteLockFileHandler(file));
         }
 
+        this.size = writeActions.size();
         this.output = ouput;
+    }
+
+    public void setDataSize(long dataSize) {
+        this.dataSize = dataSize * 1.0F;
     }
 
     public void split(ReadAction readAction) {
@@ -74,7 +81,6 @@ public abstract class SplitFile {
 
     private int getIndex(long value) {
         float result = value / dataSize;
-        int size = writeActions.size();
         int index = (int) (result * size);
         return index < size ? index : size - 1;
     }
@@ -89,5 +95,10 @@ public abstract class SplitFile {
             size = size * 10;
         }
         return size * 11.0F;
+    }
+
+    @Override
+    public void close() {
+        close(writeActions);
     }
 }

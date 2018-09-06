@@ -12,26 +12,20 @@ import java.nio.file.StandardOpenOption;
  * @author xueyikang
  * @create 2018-09-04 01:16
  */
-public class ReadFileHandler extends AbstractFileHandler implements ReadAction {
+public class ReadMmapFileHandler extends AbstractFileHandler implements ReadAction {
 
     private final byte[] data = new byte[64];
-    private int index = -1;
+    private int index = 0;
 
-    public ReadFileHandler(Path path) throws IOException {
-        super(path, false, StandardOpenOption.READ);
+    public ReadMmapFileHandler(Path path) throws IOException {
+        super(path, true, StandardOpenOption.READ);
     }
 
     @Override
     public String getNext() {
-        int size = readBuf();
-        if (size == SplitConstant.EOS) {
-            return getStr();
-        }
-
-        int position = buffer.position();
 
         byte next;
-        for (; position < size; position++) {
+        while (buffer.hasRemaining()) {
             next = buffer.get();
             if (next == SplitConstant.N) {
                 return getStr();
@@ -39,7 +33,7 @@ public class ReadFileHandler extends AbstractFileHandler implements ReadAction {
             data[index++] = next;
         }
 
-        return getNext();
+        return new String(data, 0, index);
     }
 
     private String getStr() {
@@ -53,38 +47,12 @@ public class ReadFileHandler extends AbstractFileHandler implements ReadAction {
         return str;
     }
 
-    private int readBuf() {
-        int size;
-
-        if (!buffer.hasRemaining() || init()) {
-            try {
-                buffer.clear();
-                size = fileChannel.read(buffer);
-                buffer.flip();
-            } catch (IOException e) {
-                e.printStackTrace();
-                size = SplitConstant.EOS;
-            }
-        } else {
-            size = buffer.limit();
-        }
-        return size;
-    }
-
-    private boolean init() {
-        if(index != -1) {
-            return false;
-        }
-        index = 0;
-        return true;
-    }
-
     public static void main(String[] args) throws IOException {
         Path path = Paths.get("/Users/xueyikang/file-order/resource/rs_0.data");
-        ReadAction readAction = new ReadFileHandler(path);
+        ReadAction readAction = new ReadMmapFileHandler(path);
         String line;
 
-        while (true) {
+        for (int i = 0; i < 10; i++) {
             line = readAction.getNext();
             if (null == line) {
                 break;

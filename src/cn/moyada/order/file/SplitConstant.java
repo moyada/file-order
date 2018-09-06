@@ -22,14 +22,17 @@ public class SplitConstant {
 
     public static final byte N = '\n';
 
-    public static final int BOUND = 1_000_000_000;
+    public static final int BOUND = Integer.MAX_VALUE;
+//    public static final int BOUND = 1_000_000_000;
 
     public static final int FILE_TOTAL = 10;
     public static final int TMP_TOTAL;
 
-    public static final int DATA_SIZE = 100_000;
+    public static final int DATA_SIZE = 10_000_000;
     public static final int TMP_SIZE = 1_000;
     public static final int FILE_SPLIT;
+
+    public static final int TMP_FILE_TOTAL = 1_000;
 
     static {
         int quantity = DATA_SIZE / TMP_SIZE;
